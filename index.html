@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Parcel Tracking System</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            margin: 0;
+            padding: 20px;
+        }
+        .window-frame {
+            width: 700px;
+            max-width: 95%;
+            margin: 0 auto;
+            background: #ffffff;
+            border: 2px solid #888888;
+            padding: 15px;
+            box-shadow: 2px 2px 6px #ccc;
+        }
+        h2 {
+            text-align: center;
+            margin-top: 0;
+            margin-bottom: 15px;
+            font-size: 18px;
+        }
+        .grid-panel {
+            display: grid;
+            grid-template-columns: 140px 1fr;
+            gap: 8px;
+            align-items: center;
+            border: 1px solid #ccc;
+            padding: 12px;
+            margin-bottom: 12px;
+            background: #fafafa;
+        }
+        .grid-panel label {
+            font-size: 13px;
+            font-weight: bold;
+        }
+        .grid-panel input, .grid-panel select {
+            padding: 5px 8px;
+            font-size: 13px;
+            border: 1px solid #aaa;
+            width: 95%;
+            box-sizing: border-box;
+        }
+        .button-panel {
+            text-align: center;
+            margin-bottom: 15px;
+        }
+        .button-panel button {
+            padding: 6px 16px;
+            font-size: 13px;
+            margin: 0 5px;
+            cursor: pointer;
+        }
+        .table-panel {
+            border: 1px solid #ccc;
+            padding: 10px;
+            background: #fafafa;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 13px;
+        }
+        th, td {
+            border: 1px solid #aaa;
+            padding: 6px 8px;
+            text-align: left;
+        }
+        th {
+            background-color: #e5e5e5;
+        }
+    </style>
+</head>
+<body>
+
+<div class="window-frame">
+    <h2>Parcel Tracking System</h2>
+
+    <!-- Grid based frame work -->
+    <div class="grid-panel">
+        <label>Parcel ID:</label>
+        <input type="text" id="parcel_id">
+
+        <label>Recipient Name:</label>
+        <input type="text" id="recipient_name">
+
+        <label>Destination:</label>
+        <input type="text" id="destination">
+
+        <label>Status:</label>
+        <select id="status">
+            <option value="Registered">Registered</option>
+            <option value="In Transit">In Transit</option>
+            <option value="Out for Delivery">Out for Delivery</option>
+            <option value="Delivered">Delivered</option>
+        </select>
+    </div>
+
+    <!-- The 3 Action Buttons -->
+    <div class="button-panel">
+        <button type="button" onclick="loadParcels()">Load Parcels</button>
+        <button type="button" onclick="trackParcel()">Track Parcel</button>
+        <button type="button" onclick="addParcel()">Add Parcel</button>
+    </div>
+
+    <!-- JTable View -->
+    <div class="table-panel">
+        <table>
+            <thead>
+                <tr>
+                    <th>Parcel ID</th>
+                    <th>Recipient Name</th>
+                    <th>Destination</th>
+                    <th>Status</th>
+                </tr>
+            </thead>
+            <tbody id="tableBody">
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<script>
+    // In-memory HashMap representation
+    var parcelMap = new Map();
+
+    // 1. Load Parcels
+    function loadParcels() {
+        parcelMap.clear();
+        parcelMap.set('P101', { id: 'P101', recipient: 'John Doe', destination: 'New York', status: 'In Transit' });
+        parcelMap.set('P102', { id: 'P102', recipient: 'Alice Smith', destination: 'London', status: 'Delivered' });
+        parcelMap.set('P103', { id: 'P103', recipient: 'Bob Johnson', destination: 'Tokyo', status: 'Registered' });
+        displayTable();
+        alert('Parcels loaded successfully.');
+    }
+
+    // 2. Track Parcel (Search HashMap by Parcel ID)
+    function trackParcel() {
+        var id = document.getElementById('parcel_id').value.trim();
+        if (id === '') {
+            alert('Please enter a Parcel ID to track.');
+            return;
+        }
+
+        if (parcelMap.has(id)) {
+            var p = parcelMap.get(id);
+            document.getElementById('recipient_name').value = p.recipient;
+            document.getElementById('destination').value = p.destination;
+            document.getElementById('status').value = p.status;
+            alert('Parcel Found:\nRecipient: ' + p.recipient + '\nStatus: ' + p.status);
+        } else {
+            alert('Parcel with ID \'' + id + '\' not found.');
+        }
+    }
+
+    // 3. Add Parcel (Validate, Check Duplicate in HashMap, Add)
+    function addParcel() {
+        var id = document.getElementById('parcel_id').value.trim();
+        var recipient = document.getElementById('recipient_name').value.trim();
+        var destination = document.getElementById('destination').value.trim();
+        var status = document.getElementById('status').value;
+
+        if (id === '' || recipient === '' || destination === '') {
+            alert('All fields are required.');
+            return;
+        }
+
+        // Duplicate check via HashMap
+        if (parcelMap.has(id)) {
+            alert('Parcel ID \'' + id + '\' already exists.');
+            return;
+        }
+
+        var newParcel = { id: id, recipient: recipient, destination: destination, status: status };
+        parcelMap.set(id, newParcel);
+        displayTable();
+        clearFields();
+        alert('Parcel added successfully.');
+    }
+
+    function displayTable() {
+        var tbody = document.getElementById('tableBody');
+        tbody.innerHTML = '';
+        parcelMap.forEach(function(p) {
+            var tr = document.createElement('tr');
+            tr.innerHTML = '<td>' + p.id + '</td><td>' + p.recipient + '</td><td>' + p.destination + '</td><td>' + p.status + '</td>';
+            tbody.appendChild(tr);
+        });
+    }
+
+    function clearFields() {
+        document.getElementById('parcel_id').value = '';
+        document.getElementById('recipient_name').value = '';
+        document.getElementById('destination').value = '';
+        document.getElementById('status').selectedIndex = 0;
+    }
+
+    // Initial load on start
+    window.onload = function() {
+        parcelMap.set('P101', { id: 'P101', recipient: 'John Doe', destination: 'New York', status: 'In Transit' });
+        parcelMap.set('P102', { id: 'P102', recipient: 'Alice Smith', destination: 'London', status: 'Delivered' });
+        parcelMap.set('P103', { id: 'P103', recipient: 'Bob Johnson', destination: 'Tokyo', status: 'Registered' });
+        displayTable();
+    };
+</script>
+
+</body>
+</html>
